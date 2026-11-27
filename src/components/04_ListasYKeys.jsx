@@ -21,20 +21,33 @@ const MODULOS_INICIALES = [
 export default function ListasYKeys() {
   const [modulos, setModulos] = useState(MODULOS_INICIALES);
   const [nuevoNombre, setNuevoNombre] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const [errorDuplicado, setErrorDuplicado] = useState('');
 
   const agregarModulo = (e) => {
     e.preventDefault();
-    if (!nuevoNombre.trim()) return;
+    const nombreLimpio = nuevoNombre.trim();
+    if (!nombreLimpio) return;
+
+    const yaExiste = modulos.some(
+      (m) => m.nombre.trim().toLowerCase() === nombreLimpio.toLowerCase()
+    );
+
+    if (yaExiste) {
+      setErrorDuplicado(`El módulo "${nombreLimpio}" ya existe en el catálogo.`);
+      return;
+    }
 
     const nuevo = {
       id: `mod-${Date.now()}`, // ID único estable (mejor que usar el índice del array)
       codigo: 'OPT',
-      nombre: nuevoNombre.trim(),
+      nombre: nombreLimpio,
       horas: 60
     };
     // Insertamos al principio para demostrar que React conserva la identidad de cada fila
     setModulos([nuevo, ...modulos]);
     setNuevoNombre('');
+    setErrorDuplicado('');
   };
 
   const eliminarModulo = (idAEliminar) => {
@@ -44,6 +57,13 @@ export default function ListasYKeys() {
   const invertirOrden = () => {
     setModulos([...modulos].reverse());
   };
+
+  const termino = busqueda.trim().toLowerCase();
+  const modulosFiltrados = modulos.filter(
+    (modulo) =>
+      modulo.nombre.toLowerCase().includes(termino) ||
+      modulo.codigo.toLowerCase().includes(termino)
+  );
 
   return (
     <section className="card">
@@ -59,8 +79,12 @@ export default function ListasYKeys() {
           className="input"
           style={{ flex: '1 1 260px', marginTop: 0 }}
           placeholder="Añadir nuevo módulo al principio de la lista..."
+          aria-label="Nombre del nuevo módulo"
           value={nuevoNombre}
-          onChange={(e) => setNuevoNombre(e.target.value)}
+          onChange={(e) => {
+            setNuevoNombre(e.target.value);
+            if (errorDuplicado) setErrorDuplicado('');
+          }}
         />
         <button type="submit" className="btn">Añadir módulo</button>
         <button type="button" className="btn btn-secondary" onClick={invertirOrden}>
@@ -68,14 +92,38 @@ export default function ListasYKeys() {
         </button>
       </form>
 
+      {errorDuplicado && (
+        <p role="alert" className="alert-error">
+          {errorDuplicado}
+        </p>
+      )}
+
+      <div style={{ marginTop: '0.85rem' }}>
+        <label htmlFor="buscar-modulo" style={{ fontSize: '0.9rem', color: 'var(--text-soft)' }}>
+          Buscar módulo por nombre o código:
+        </label>
+        <input
+          id="buscar-modulo"
+          type="search"
+          className="input"
+          placeholder="Ej.: DI, Acceso a Datos, PSP..."
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+        />
+      </div>
+
+      <p style={{ marginTop: '0.85rem', fontSize: '0.9rem', color: 'var(--text-soft)', fontWeight: 600 }}>
+        Mostrando {modulosFiltrados.length} de {modulos.length} módulos
+      </p>
+
       <ul className="list">
-        {modulos.map((modulo) => (
+        {modulosFiltrados.map((modulo) => (
           // [CLAVE EXPOSICIÓN] La `key` va siempre en el elemento raíz del `.map()`
           <li key={modulo.id} className="list-item">
             <div>
               <span className="pill" style={{ marginRight: '0.6rem' }}>{modulo.codigo}</span>
               <strong>{modulo.nombre}</strong>
-              <span style={{ color: '#94a3b8', marginLeft: '0.5rem', fontSize: '0.85rem' }}>
+              <span style={{ color: 'var(--muted)', marginLeft: '0.5rem', fontSize: '0.85rem' }}>
                 ({modulo.horas} h · key: <code className="code-inline">{modulo.id}</code>)
               </span>
             </div>
@@ -91,8 +139,14 @@ export default function ListasYKeys() {
       </ul>
 
       {modulos.length === 0 && (
-        <p className="subtitle" style={{ marginTop: '0.75rem' }}>
+        <p className="empty-state">
           No quedan módulos en la lista. Añade uno nuevo arriba.
+        </p>
+      )}
+
+      {modulos.length > 0 && modulosFiltrados.length === 0 && (
+        <p className="empty-state">
+          No se encontraron módulos que coincidan con &quot;{busqueda.trim()}&quot;.
         </p>
       )}
 
