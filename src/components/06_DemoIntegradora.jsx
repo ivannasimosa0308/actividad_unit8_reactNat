@@ -24,7 +24,7 @@ function TarjetaExpediente({ alumno, seleccionado, onSeleccionar }) {
     <article
       className="box"
       style={{
-        borderColor: seleccionado ? '#38bdf8' : '#334155',
+        borderColor: seleccionado ? 'var(--primary)' : 'var(--border)',
         borderWidth: seleccionado ? '2px' : '1px'
       }}
     >
@@ -56,11 +56,21 @@ function TarjetaExpediente({ alumno, seleccionado, onSeleccionar }) {
 
 export default function DemoIntegradora() {
   const [soloAprobados, setSoloAprobados] = useState(false);
+  const [busqueda, setBusqueda] = useState('');
+  const [orden, setOrden] = useState('nota-desc');
   const [seleccionado, setSeleccionado] = useState(null);
 
-  const listaFiltrada = soloAprobados
-    ? EXPEDIENTES.filter((a) => a.nota >= 5)
-    : EXPEDIENTES;
+  const termino = busqueda.trim().toLowerCase();
+
+  const listaVisible = EXPEDIENTES.filter((alumno) => {
+    const cumpleAprobado = !soloAprobados || alumno.nota >= 5;
+    const cumpleNombre = alumno.nombre.toLowerCase().includes(termino);
+    return cumpleAprobado && cumpleNombre;
+  }).sort((a, b) => {
+    if (orden === 'nota-desc') return b.nota - a.nota;
+    if (orden === 'nota-asc') return a.nota - b.nota;
+    return a.nombre.localeCompare(b.nombre, 'es');
+  });
 
   return (
     <>
@@ -70,7 +80,28 @@ export default function DemoIntegradora() {
           Composición de componentes reutilizables aplicando todas las reglas de JSX.
         </p>
 
-        <div className="btn-row" style={{ marginBottom: '1rem', alignItems: 'center' }}>
+        <div className="controls-bar">
+          <input
+            type="search"
+            className="input"
+            style={{ flex: '1 1 220px' }}
+            placeholder="Buscar alumno por nombre..."
+            aria-label="Buscar alumno por nombre"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+
+          <select
+            className="input"
+            aria-label="Ordenar expedientes"
+            value={orden}
+            onChange={(e) => setOrden(e.target.value)}
+          >
+            <option value="nota-desc">Nota (mayor a menor)</option>
+            <option value="nota-asc">Nota (menor a mayor)</option>
+            <option value="nombre-asc">Nombre (A–Z)</option>
+          </select>
+
           <button
             type="button"
             className="btn btn-secondary"
@@ -86,16 +117,20 @@ export default function DemoIntegradora() {
           )}
         </div>
 
-        <div className="grid-2">
-          {listaFiltrada.map((alumno) => (
-            <TarjetaExpediente
-              key={alumno.id}
-              alumno={alumno}
-              seleccionado={seleccionado?.id === alumno.id}
-              onSeleccionar={setSeleccionado}
-            />
-          ))}
-        </div>
+        {listaVisible.length === 0 ? (
+          <p className="empty-state">No se encontraron expedientes con esos criterios</p>
+        ) : (
+          <div className="grid-2">
+            {listaVisible.map((alumno) => (
+              <TarjetaExpediente
+                key={alumno.id}
+                alumno={alumno}
+                seleccionado={seleccionado?.id === alumno.id}
+                onSeleccionar={setSeleccionado}
+              />
+            ))}
+          </div>
+        )}
 
         <p className="file-hint">
           Archivo para mostrar en VS Code: <code className="code-inline">src/components/06_DemoIntegradora.jsx</code>
