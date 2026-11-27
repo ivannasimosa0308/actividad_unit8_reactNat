@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import ResumenKPIs from './ResumenKPIs.jsx';
 
 // ============================================================================
@@ -12,11 +12,41 @@ import ResumenKPIs from './ResumenKPIs.jsx';
 // - Comunicación mediante props y composición de componentes
 // ============================================================================
 
+const STORAGE_KEY = 'm10_2_expedientes_dam2';
+
 const EXPEDIENTES_INICIALES = [
   { id: 101, nombre: 'Lucía Serrano', nota: 8.7, modulos: ['DI', 'PSP', 'AD'] },
   { id: 102, nombre: 'Marcos Vega', nota: 4.3, modulos: ['DI', 'SGE'] },
   { id: 103, nombre: 'Sofía Navarro', nota: 9.5, modulos: ['DI', 'PSP', 'AD', 'PMDM'] }
 ];
+
+function clonarExpedientesIniciales() {
+  return EXPEDIENTES_INICIALES.map((item) => ({
+    ...item,
+    modulos: [...item.modulos]
+  }));
+}
+
+function cargarExpedientesIniciales() {
+  try {
+    const guardado = localStorage.getItem(STORAGE_KEY);
+    if (!guardado) return clonarExpedientesIniciales();
+    const datos = JSON.parse(guardado);
+    const esValido =
+      Array.isArray(datos) &&
+      datos.every(
+        (item) =>
+          item &&
+          item.id !== undefined &&
+          typeof item.nombre === 'string' &&
+          typeof item.nota === 'number' &&
+          Array.isArray(item.modulos)
+      );
+    return esValido ? datos : clonarExpedientesIniciales();
+  } catch {
+    return clonarExpedientesIniciales();
+  }
+}
 
 function TarjetaExpediente({ alumno, seleccionado, onSeleccionar }) {
   const aprobado = alumno.nota >= 5;
@@ -56,17 +86,44 @@ function TarjetaExpediente({ alumno, seleccionado, onSeleccionar }) {
 }
 
 export default function DemoIntegradora() {
-  const [expedientes, setExpedientes] = useState(EXPEDIENTES_INICIALES);
+  const [expedientes, setExpedientes] = useState(cargarExpedientesIniciales);
   const [soloAprobados, setSoloAprobados] = useState(false);
   const [busqueda, setBusqueda] = useState('');
   const [orden, setOrden] = useState('nota-desc');
   const [seleccionado, setSeleccionado] = useState(null);
+  const omitirSiguienteGuardadoRef = useRef(false);
 
   // Estados del formulario controlado de alta de expedientes
   const [nuevoNombre, setNuevoNombre] = useState('');
   const [nuevaNota, setNuevaNota] = useState('');
   const [nuevosModulos, setNuevosModulos] = useState('');
   const [errorFormulario, setErrorFormulario] = useState('');
+
+  useEffect(() => {
+    if (omitirSiguienteGuardadoRef.current) {
+      omitirSiguienteGuardadoRef.current = false;
+      return;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(expedientes));
+    } catch {
+      // Ignorar errores de almacenamiento (modo privado o cuota llena)
+    }
+  }, [expedientes]);
+
+  const restablecerDatosIniciales = () => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // Ignorar errores de acceso a localStorage
+    }
+    omitirSiguienteGuardadoRef.current = true;
+    setExpedientes(clonarExpedientesIniciales());
+    setSeleccionado(null);
+    setBusqueda('');
+    setSoloAprobados(false);
+    setErrorFormulario('');
+  };
 
   const agregarExpediente = (e) => {
     e.preventDefault();
@@ -228,6 +285,14 @@ export default function DemoIntegradora() {
             onClick={() => setSoloAprobados((prev) => !prev)}
           >
             {soloAprobados ? 'Mostrar todos los alumnos' : 'Filtrar solo aprobados (>= 5)'}
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={restablecerDatosIniciales}
+          >
+            Restablecer datos iniciales
           </button>
 
           {seleccionado && (
