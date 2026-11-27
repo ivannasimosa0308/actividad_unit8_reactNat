@@ -42,7 +42,7 @@ export default function App() {
               onClick={() => setTemaClaro((prev) => !prev)}
               aria-pressed={temaClaro}
             >
-              {temaClaro ? '🌙 Modo oscuro' : '☀️ Modo claro'}
+              {temaClaro ? ' Modo oscuro' : ' Modo claro'}
             </button>
             <span className="pill">React 18 + Vite</span>
           </div>
