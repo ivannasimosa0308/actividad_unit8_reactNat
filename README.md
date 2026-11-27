@@ -3,7 +3,7 @@
 **Autora:** Ivanna Simosa  
 **Módulo:** Desarrollo de Interfaces (M10.2 · DAM2)  
 **Repositorio GitHub:** [https://github.com/ivannasimosa0308/actividad_unit8_reactNat](https://github.com/ivannasimosa0308/actividad_unit8_reactNat)  
-**Aplicación desplegada (Vercel):** [Pendiente de enlazar tras pulsar Deploy en Vercel — p. ej. `https://actividad-unit8-react-nat.vercel.app`](https://actividad-unit8-react-nat.vercel.app)
+**Aplicación desplegada (Vercel):** https://actividadreact.vercel.app/ 
 
 ---
 
