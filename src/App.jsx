@@ -21,39 +21,61 @@ const SECCIONES = [
 
 export default function App() {
   const [activa, setActiva] = useState('01');
+  const [temaClaro, setTemaClaro] = useState(false);
 
   // Localizamos dinámicamente el componente a renderizar según la pestaña activa
   const seccionActual = SECCIONES.find((sec) => sec.id === activa);
   const ComponenteActivo = seccionActual.componente;
 
   return (
-    <div className="layout">
-      <header className="header">
-        <div>
-          <h1>M10.2. JSX (JavaScript XML) con React</h1>
-          <p>Demostración interactiva para exposición en clase · Abre los archivos de src/components/ en VS Code</p>
-        </div>
-        <span className="pill">React 18 + Vite</span>
-      </header>
+    <div className={`app-shell ${temaClaro ? 'theme-light' : 'theme-dark'}`}>
+      <div className="layout">
+        <header className="header">
+          <div>
+            <h1>M10.2. JSX (JavaScript XML) con React</h1>
+            <p>Demostración interactiva para exposición en clase · Abre los archivos de src/components/ en VS Code</p>
+          </div>
+          <div className="header-actions">
+            <button
+              type="button"
+              className="btn btn-theme"
+              onClick={() => setTemaClaro((prev) => !prev)}
+              aria-pressed={temaClaro}
+            >
+              {temaClaro ? '🌙 Modo oscuro' : '☀️ Modo claro'}
+            </button>
+            <span className="pill">React 18 + Vite</span>
+          </div>
+        </header>
 
-      {/* Navegación generada dinámicamente con .map() y key única */}
-      <nav className="tabs" aria-label="Temas de JSX">
-        {SECCIONES.map((sec) => (
-          <button
-            key={sec.id}
-            type="button"
-            className={`tab-btn ${activa === sec.id ? 'active' : ''}`}
-            onClick={() => setActiva(sec.id)}
-          >
-            {sec.titulo}
-          </button>
-        ))}
-      </nav>
+        {/* Navegación generada dinámicamente con .map() y key única */}
+        <nav className="tabs" aria-label="Temas de JSX">
+          {SECCIONES.map((sec) => (
+            <button
+              key={sec.id}
+              type="button"
+              className={`tab-btn ${activa === sec.id ? 'active' : ''}`}
+              onClick={() => setActiva(sec.id)}
+            >
+              {sec.titulo}
+            </button>
+          ))}
+        </nav>
 
-      {/* Renderizamos el componente seleccionado */}
-      <main>
-        <ComponenteActivo />
-      </main>
+        {/* Renderizamos el componente seleccionado */}
+        <main>
+          <ComponenteActivo />
+        </main>
+
+        <footer className="footer">
+          <p>
+            <strong>Ivanna Simosa</strong> · Módulo: Desarrollo de Interfaces (M10.2 · DAM2)
+          </p>
+          <p className="footer-meta">
+            © {new Date().getFullYear()} · Aplicación React (JSX) con Vite
+          </p>
+        </footer>
+      </div>
     </div>
   );
 }
